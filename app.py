@@ -42,7 +42,7 @@ def index():
             # Save the path of the uploaded file
             uploaded_file_path = upload_path
             
-            result = model.predict(upload_path, confidence=40, overlap=30).json()
+            result = model.predict(upload_path, confidence=30, overlap=30).json()
 
             # Extract labels from Roboflow predictions
             labels = [item["class"] for item in result["predictions"]]
