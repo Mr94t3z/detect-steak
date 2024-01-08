@@ -36,6 +36,7 @@
         function uploadImage() {
             const uploadForm = document.getElementById('uploadForm');
             uploadForm.submit();
+            hideDropText();
         }
 
         // Function to copy prediction
@@ -49,16 +50,104 @@
             document.body.removeChild(textArea);
             alert('Content copied to clipboard');
         }
+
+        // Function to format and display JSON data
+        function formatAndDisplayJSON() {
+            const contentToCopy = document.getElementById('contentToCopy');
+            const jsonString = contentToCopy.innerText;
+            const jsonObject = JSON.parse(jsonString);
+            const formattedJsonString = JSON.stringify(jsonObject, null, 2);
+            document.getElementById('formattedJson').innerText = formattedJsonString;
+        }
+
+        // Call the formatting function when the page loads
+        window.onload = formatAndDisplayJSON;
+
+        function handleDrop(event) {
+            event.preventDefault();
+            const dropArea = document.getElementById('dropArea');
+            dropArea.classList.remove('dragover');
+
+            const files = event.dataTransfer.files;
+            const fileInput = document.getElementById('fileInput');
+            fileInput.files = files;
+
+            // Show the drop area when an image is dropped
+            dropArea.style.display = 'flex';
+            uploadImage();
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            const dropArea = document.getElementById('dropArea');
+            dropArea.classList.add('dragover');
+
+            document.body.classList.add('blurred');
+
+            const dragLine = document.getElementById('dragLine');
+            dragLine.style.display = 'block';
+
+            // Show the drop area when an image is dragged over
+            dropArea.style.display = 'flex';
+        }
+
+        // Event listener for drag start
+        document.body.addEventListener('dragstart', function () {
+            const dropArea = document.getElementById('dropArea');
+            dropArea.style.display = 'none'; // Hide the drop area when dragging starts
+        });
+
+        // Event listener for drag leave
+        document.getElementById('dropArea').addEventListener('dragleave', function () {
+            const dropArea = document.getElementById('dropArea');
+            dropArea.classList.remove('dragover');
+
+            document.body.classList.remove('blurred');
+
+            const dragLine = document.getElementById('dragLine');
+            dragLine.style.display = 'none';
+
+            // Hide the drop area when dragging leaves the area
+            dropArea.style.display = 'none';
+        });
+
+        // Event listener for drop
+        document.body.addEventListener('drop', function (event) {
+            event.preventDefault();
+            const dropArea = document.getElementById('dropArea');
+            dropArea.classList.remove('dragover');
+
+            const dragLine = document.getElementById('dragLine');
+            dragLine.style.display = 'none';
+
+            // Hide the drop area when an image is dropped
+            dropArea.style.display = 'none';
+
+            const files = event.dataTransfer.files;
+            const fileInput = document.getElementById('fileInput');
+            fileInput.files = files;
+            uploadImage();
+        });
     </script>
 
     <!-- Custom styles for this template -->
-    <link href="{{ url_for('static', filename='assets/dist/css/cover.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/dist/css/styles.css') }}" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 </head>
 
-<body class="d-flex h-100 text-center text-bg-dark">
+<body class="d-flex h-100 text-center text-bg-dark" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">   
+
+    <div class="drop-area text-center" id="dropArea">
+        <div class="d-flex justify-content-center align-items-center flex-column">
+            <i class="fas fa-file-import text-white mb-3" style="font-size: 2em;"></i>
+            <p class="text-white fw-semibold">Drop image to predict.</p>
+        </div>
+        <div class="drag-line" id="dragLine"></div>
+    </div>
+    
+
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
         <symbol id="check2" viewBox="0 0 16 16">
             <path
@@ -134,8 +223,8 @@
                 <h3 class="float-md-start fw-bold mb-0">Steak Detection</h3>
                 <nav class="nav nav-masthead justify-content-center float-md-end">
                     <a class="nav-link py-1 px-0 active" aria-current="page" href="#">Home</a>
-                    <a class="nav-link py-1 px-0" href="#">All Result</a>
-                    <!--<a class="nav-link fw-bold py-1 px-0" href="#">Contact</a>-->
+                    <a class="nav-link py-1 px-0" href="#">About Me</a>
+                    <!--<a class="nav-link py-1 px-0" href="#">Contact</a>-->
                 </nav>
             </div>
         </header>
@@ -152,43 +241,60 @@
                                 <p class="text-white" style="font-size: 14px;">Drop file here or</p>
                                 <form id="uploadForm" action="/" method="post" enctype="multipart/form-data">
                                     <div class="mb-3">
-                                        <label for="fileInput" class="btn btn-bd-primary fw-semibold" style="font-size: 14px;">
+                                        <label for="fileInput" class="btn btn-bd-primary fw-semibold"
+                                            style="font-size: 14px;">
                                             <i class="fas fa-upload fa-fw"></i>
                                             Select file
                                         </label>
-                                        <input type="file" id="fileInput" name="file" accept=".jpg, .jpeg, .png" required style="display: none;" onchange="uploadImage()">
+                                        <input type="file" id="fileInput" name="file" accept=".jpg, .jpeg, .png"
+                                            required style="display: none;" onchange="uploadImage()">
                                     </div>
                                 </form>
                             </div>
-                          </div>
+                        </div>
                     </div>
-                    
+
                     <!-- Prediction -->
                     <div class="card-body position-relative" style="height: 500px;">
                         <div class="card border-secondary mb-3" style="max-width: 14rem;">
-                            <div class="card-body text-secondary" id="contentToCopy" style="height: 270px; overflow-y: auto;">
-                                <p class="text-white text-start" style="font-size: 14px;">{ "prediction" : [] }</p>
+                            <div class="card-body text-secondary" id="contentToCopy"
+                                style="height: 270px; overflow-y: scroll;">
+                                <pre class="text-white text-start" style="font-size: 14px;" id="formattedJson">
+                                    {{ prediction_data | tojson | safe }}
+                                </pre>
                             </div>
-                            <button class="btn btn-sm btn-outline-secondary position-absolute bottom-0 end-0 mb-0 me-0" onclick="copyContent()">
+                            <button class="btn btn-sm btn-bd-primary position-absolute bottom-0 end-0 mb-0 me-0"
+                                onclick="copyContent()">
+                                <i class="fas fa-clone"></i>
                                 Copy
                             </button>
                         </div>
                     </div>
+
+
 
                 </div>
             </div>
 
             <!-- Result -->
             <div class="col-sm-7">
-                <div class="card" style="height: 500px; background-color: #232C30;">
+                <div class="card" style="height: 500px; background-color: #232C30; position: relative;">
                     <div class="card-body w-100">
-                        <h5 class="card-title">Result Image</h5>
-                        <!-- Your image or content here -->
+                        <h5 class="card-title" style="font-size: 16px;">Result Image</h5>
+                        {% if prediction %}
+                        <div class="image-container" style="position: relative;">
+                            <img src="data:image/jpeg;base64,{{ annotated_image_base64 }}" alt="Annotated Image"
+                                class="detected-image">
+                        </div>
+                        {% else %}
+                        <p>No prediction available.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
+
         </div>
-          
+
 
         <footer class="mt-auto text-white-50">
             <p>Steak Detection by <a href="https://github.com/Mr94t3z/steak-detection" class="text-white">Team</a>.</p>

@@ -30,6 +30,10 @@ def get_file_extension(filename):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     global uploaded_file_path  # Access the global variable
+    prediction = None
+    annotated_image_base64 = None
+    result = None
+
     if request.method == 'POST':
         file = request.files['file']
         if file:
@@ -56,17 +60,16 @@ def index():
 
             image = cv2.imread(upload_path)
 
-            annotated_image = bounding_box_annotator.annotate(
-                scene=image, detections=detections)
-            annotated_image = label_annotator.annotate(
-                scene=annotated_image, detections=detections, labels=labels)
+            annotated_image = bounding_box_annotator.annotate(scene=image, detections=detections)
+            annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections, labels=labels)
 
             # Convert annotated_image from OpenCV to base64-encoded string
             _, buffer = cv2.imencode('.jpg', annotated_image)
             annotated_image_base64 = base64.b64encode(buffer).decode('utf-8')
 
-            return render_template('result.html', prediction=result, uploaded_file=url_for('static', filename=f'uploads/{file.filename}'), annotated_image_base64=annotated_image_base64)
-    return render_template('index.html')
+            prediction = result
+
+    return render_template('index.html', prediction_data=result, prediction=prediction, annotated_image_base64=annotated_image_base64)
 
 @app.route('/delete', methods=['POST'])
 def delete_uploaded_file():
