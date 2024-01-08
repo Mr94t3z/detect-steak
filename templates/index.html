@@ -28,17 +28,18 @@
             xhr.open("POST", "/delete", true);
             xhr.send();
         }
+        
         // Event listeners for window unload and refresh
         window.addEventListener("beforeunload", deleteFile);
         window.addEventListener("unload", deleteFile);
-
-        // Function to uploaded file
+    
+        // Function to upload file
         function uploadImage() {
             const uploadForm = document.getElementById('uploadForm');
             uploadForm.submit();
             hideDropText();
         }
-
+    
         // Function to copy prediction
         function copyContent() {
             const content = document.getElementById('contentToCopy').innerText;
@@ -50,7 +51,7 @@
             document.body.removeChild(textArea);
             alert('Content copied to clipboard');
         }
-
+    
         // Function to format and display JSON data
         function formatAndDisplayJSON() {
             const contentToCopy = document.getElementById('contentToCopy');
@@ -59,46 +60,49 @@
             const formattedJsonString = JSON.stringify(jsonObject, null, 2);
             document.getElementById('formattedJson').innerText = formattedJsonString;
         }
-
+    
         // Call the formatting function when the page loads
         window.onload = formatAndDisplayJSON;
-
+    
+        // Function to handle drop
         function handleDrop(event) {
             event.preventDefault();
             const dropArea = document.getElementById('dropArea');
             dropArea.classList.remove('dragover');
-
+    
             const files = event.dataTransfer.files;
             const fileInput = document.getElementById('fileInput');
             fileInput.files = files;
-
+    
             // Show the drop area when an image is dropped
             dropArea.style.display = 'flex';
             uploadImage();
         }
-
+    
+        // Function to handle drag over
         function handleDragOver(event) {
             event.preventDefault();
             const dropArea = document.getElementById('dropArea');
             dropArea.classList.add('dragover');
-
+    
             document.body.classList.add('blurred');
-
+    
             const dragLine = document.getElementById('dragLine');
             dragLine.style.display = 'block';
-
+    
             // Show the drop area when an image is dragged over
             dropArea.style.display = 'flex';
         }
-
+    
         // Event listener for drag start
         document.body.addEventListener('dragstart', function () {
             const dropArea = document.getElementById('dropArea');
             dropArea.style.display = 'none'; // Hide the drop area when dragging starts
         });
-
-        // Event listener for drag leave
-        document.getElementById('dropArea').addEventListener('dragleave', function () {
+    
+        // Attach event listeners to the dropArea
+        document.getElementById('dropArea').addEventListener('dragleave', function (event) {
+            event.preventDefault();
             const dropArea = document.getElementById('dropArea');
             dropArea.classList.remove('dragover');
 
@@ -111,24 +115,22 @@
             dropArea.style.display = 'none';
         });
 
-        // Event listener for drop
-        document.body.addEventListener('drop', function (event) {
-            event.preventDefault();
+        document.getElementById('dropArea').addEventListener('dragend', function (event) {
             const dropArea = document.getElementById('dropArea');
             dropArea.classList.remove('dragover');
-
+            document.body.classList.remove('blurred');
             const dragLine = document.getElementById('dragLine');
             dragLine.style.display = 'none';
-
-            // Hide the drop area when an image is dropped
+        
+            // Hide the drop area when dragging ends without dropping the image
             dropArea.style.display = 'none';
+        });        
 
-            const files = event.dataTransfer.files;
-            const fileInput = document.getElementById('fileInput');
-            fileInput.files = files;
-            uploadImage();
-        });
+        document.getElementById('dropArea').addEventListener('dragover', handleDragOver);
+
+        document.getElementById('dropArea').addEventListener('drop', handleDrop);
     </script>
+    
 
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='assets/dist/css/styles.css') }}" rel="stylesheet">
@@ -141,7 +143,7 @@
 
     <div class="drop-area text-center" id="dropArea">
         <div class="d-flex justify-content-center align-items-center flex-column">
-            <i class="fas fa-file-import text-white mb-3" style="font-size: 2em;"></i>
+            <i class="fas fa-file-import mb-3" style="font-size: 2em; color: #712cf9;"></i>
             <p class="text-white fw-semibold">Drop image to predict.</p>
         </div>
         <div class="drag-line" id="dragLine"></div>
