@@ -6,3 +6,9 @@ __pycache__/
 
 # Ignore IDE or editor-specific files (example for VSCode)
 .vscode/
+
+# Hidden files
+.DS_Store
+static/.DS_Store
+static/assets/.DS_Store
+static/assets/dist/.DS_Store
