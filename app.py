@@ -6,6 +6,7 @@ import cv2
 import io
 import base64
 import supervision as sv
+import uuid
 from dotenv import load_dotenv
 
 # Load environment variables from .env
@@ -24,6 +25,7 @@ model = project.version(1).model
 # Create a variable to store the path of the uploaded file
 uploaded_file_path = None
 
+
 def get_file_extension(filename):
     return os.path.splitext(filename)[1]
 
@@ -38,15 +40,16 @@ def index():
         file = request.files['file']
         if file:
             file_extension = get_file_extension(file.filename)
+            random_filename = str(uuid.uuid4()) + file_extension
             temp_file = tempfile.NamedTemporaryFile(suffix=file_extension, delete=False)
             file.save(temp_file.name)
-            upload_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            upload_path = os.path.join(app.config['UPLOAD_FOLDER'], random_filename)
             os.rename(temp_file.name, upload_path)
             
             # Save the path of the uploaded file
             uploaded_file_path = upload_path
             
-            result = model.predict(upload_path, confidence=30, overlap=30).json()
+            result = model.predict(upload_path, confidence=50, overlap=30).json()
 
             # Extract labels from Roboflow predictions
             labels = [item["class"] for item in result["predictions"]]
@@ -79,6 +82,22 @@ def delete_uploaded_file():
         uploaded_file_path = None  # Reset the path variable
         return "File deleted"
     return "No file to delete"
+
+@app.route('/clear_data', methods=['GET'])
+def clear_data():
+    # Clear all uploaded files in the UPLOAD_FOLDER
+    folder = app.config['UPLOAD_FOLDER']
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"Failed to delete {file_path}: {e}")
+
+    # Additionally, reset any other data or variables you need to clear
+
+    return "All data cleared"
 
 if __name__ == '__main__':
     app.run(debug=True)

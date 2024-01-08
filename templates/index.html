@@ -32,6 +32,25 @@
         // Event listeners for window unload and refresh
         window.addEventListener("beforeunload", deleteFile);
         window.addEventListener("unload", deleteFile);
+
+        // Function to clear the data
+        function clearData() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/clear_data", true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        alert("Data cleared successfully");
+                        document.querySelector('.detected-image').src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // Transparent pixel
+                        document.getElementById('contentToCopy').innerHTML = ''; // Clear prediction data
+                    } else {
+                        alert("Failed to clear data");
+                        // Handle failure scenarios if necessary
+                    }
+                }
+            };
+            xhr.send();
+        }
     
         // Function to upload file
         function uploadImage() {
@@ -225,7 +244,7 @@
                 <h3 class="float-md-start fw-bold mb-0">Steak Detection</h3>
                 <nav class="nav nav-masthead justify-content-center float-md-end">
                     <a class="nav-link py-1 px-0 active" aria-current="page" href="#">Home</a>
-                    <a class="nav-link py-1 px-0" href="#">About Me</a>
+                    <a class="nav-link py-1 px-0" href="#" onclick="clearData()">Clear Data!</a>
                     <!--<a class="nav-link py-1 px-0" href="#">Contact</a>-->
                 </nav>
             </div>
