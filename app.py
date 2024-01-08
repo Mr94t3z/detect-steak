@@ -19,8 +19,8 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'  # Define the upload folder
 roboflow_api_key = os.getenv('ROBOFLOW_API_KEY')
 rf = Roboflow(api_key=roboflow_api_key) if roboflow_api_key else None
 
-project = rf.workspace().project("detect_steak")
-model = project.version(1).model
+project = rf.workspace().project("steak-detection")
+model = project.version(2).model
 
 # Create a variable to store the path of the uploaded file
 uploaded_file_path = None
